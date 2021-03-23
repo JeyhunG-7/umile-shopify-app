@@ -6,6 +6,7 @@ import { Provider, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
 import "@shopify/polaris/dist/styles.css";
 import translations from "@shopify/polaris/locales/en.json";
+import ClientRouter from "../components/ClientRouter";
 
 function MyProvider(props) {
   const app = useAppBridge();
@@ -14,6 +15,18 @@ function MyProvider(props) {
     fetch: authenticatedFetch(app),
     fetchOptions: {
       credentials: "include",
+    },
+    onError: ({ graphQLErrors, networkError }) => {
+      if (graphQLErrors) {
+        graphQLErrors.forEach(({ message, locations, path }) =>
+          console.log(
+            `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+          )
+        );
+      }
+      if (networkError) {
+        console.log(`[Network error]: ${networkError}`);
+      }
     },
   });
 
@@ -38,6 +51,7 @@ class MyApp extends App {
             forceRedirect: true,
           }}
         >
+          <ClientRouter />
           <MyProvider Component={Component} {...pageProps} />
         </Provider>
       </AppProvider>
