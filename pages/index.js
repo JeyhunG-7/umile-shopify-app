@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLazyQuery } from "react-apollo";
 import { ResourcePicker } from "@shopify/app-bridge-react";
+import gql from "graphql-tag";
 import {
   Heading,
   Page,
@@ -8,7 +9,6 @@ import {
   ButtonGroup,
   TextStyle,
 } from "@shopify/polaris";
-import gql from "graphql-tag";
 
 const PrettyPrintJson = React.memo(({ data }) => (
   <div>
@@ -18,8 +18,7 @@ const PrettyPrintJson = React.memo(({ data }) => (
 
 const Index = ({ authFetch }) => {
   const [open, setOpen] = useState(false);
-  const [fetchData, setFetchData] = useState(null);
-  const [gqlData, setGqlData] = useState(null);
+  const [displayData, setDisplayData] = useState(null);
 
   const GET_SHOP_INFOMATION = gql`
     query {
@@ -31,16 +30,14 @@ const Index = ({ authFetch }) => {
     }
   `;
 
-  const [loadShopInfo, { data }] = useLazyQuery(GET_SHOP_INFOMATION);
+  const [loadShopInfo, { data, called }] = useLazyQuery(GET_SHOP_INFOMATION);
 
-  useEffect(() => setGqlData(data), [data]);
-
-  const displayData = fetchData || gqlData;
+  useEffect(() => setDisplayData(data), [data]);
 
   const sampleFetchTest = () => {
     authFetch("/api")
       .then((resp) => resp.json())
-      .then((data) => setFetchData(data))
+      .then((data) => setDisplayData(data))
       .catch((e) => console.error("Fetch call error", e.message));
   };
 
@@ -58,19 +55,16 @@ const Index = ({ authFetch }) => {
           <Button
             primary
             onClick={() => {
-              setFetchData(null);
-              loadShopInfo();
+              if (called) {
+                setDisplayData(data);
+              } else {
+                loadShopInfo();
+              }
             }}
           >
             GraphQL Query
           </Button>
-          <Button
-            primary
-            onClick={() => {
-              setGqlData(null);
-              sampleFetchTest();
-            }}
-          >
+          <Button onClick={() => sampleFetchTest()} primary>
             Fetch from BE
           </Button>
         </ButtonGroup>
