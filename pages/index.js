@@ -1,56 +1,88 @@
-import { Heading, Page, Button } from "@shopify/polaris";
-// import { useQuery, gql } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import { useLazyQuery } from "react-apollo";
 import { ResourcePicker } from "@shopify/app-bridge-react";
+import {
+  Heading,
+  Page,
+  Button,
+  ButtonGroup,
+  TextStyle,
+} from "@shopify/polaris";
 import gql from "graphql-tag";
 
-const Index = (props) => {
+const PrettyPrintJson = React.memo(({ data }) => (
+  <div>
+    <pre>{JSON.stringify(data, null, 2)}</pre>
+  </div>
+));
+
+const Index = ({ authFetch }) => {
   const [open, setOpen] = useState(false);
+  const [fetchData, setFetchData] = useState(null);
+  const [gqlData, setGqlData] = useState(null);
 
   const GET_SHOP_INFOMATION = gql`
-    query shop {
+    query {
       shop {
+        id
         name
+        email
       }
     }
   `;
 
-  const [loadShopInfo, { called, loading, data, error }] = useLazyQuery(
-    GET_SHOP_INFOMATION
-  );
+  const [loadShopInfo, { data }] = useLazyQuery(GET_SHOP_INFOMATION);
 
-  useEffect(() => {
-    // if (!called) loadShopInfo();
+  useEffect(() => setGqlData(data), [data]);
 
-    console.log("Use effect:", called, loading, data);
+  const displayData = fetchData || gqlData;
 
-    if (loading === false && data) console.log("data: " + data);
-
-    if (error) console.error(error.message);
-  }, [loading]);
+  const sampleFetchTest = () => {
+    authFetch("/api")
+      .then((resp) => resp.json())
+      .then((data) => setFetchData(data))
+      .catch((e) => console.error("Fetch call error", e.message));
+  };
 
   return (
     <>
       <Page>
         <Heading>
-          Shopify app with Node and React (last edit March 23, 2021)
+          Shopify app with Node and React (last edit March 24, 2021)
         </Heading>
         <br />
-        <Button
-          primary
-          onClick={() => {
-            console.log("I am clicked");
-            setOpen(true);
-          }}
-        >
-          Click Me
-        </Button>
+        <ButtonGroup>
+          <Button onClick={() => setOpen(true)} primary>
+            Resource Picker
+          </Button>
+          <Button
+            primary
+            onClick={() => {
+              setFetchData(null);
+              loadShopInfo();
+            }}
+          >
+            GraphQL Query
+          </Button>
+          <Button
+            primary
+            onClick={() => {
+              setGqlData(null);
+              sampleFetchTest();
+            }}
+          >
+            Fetch from BE
+          </Button>
+        </ButtonGroup>
+        <br />
+        <TextStyle variation="code">
+          {displayData && <PrettyPrintJson data={displayData} />}
+        </TextStyle>
       </Page>
 
       <ResourcePicker
-        resourceType="Product"
         open={open}
+        resourceType="Product"
         onCancel={() => setOpen(false)}
       />
     </>

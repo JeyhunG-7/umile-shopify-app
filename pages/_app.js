@@ -4,15 +4,17 @@ import App from "next/app";
 import { AppProvider } from "@shopify/polaris";
 import { Provider, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
-import "@shopify/polaris/dist/styles.css";
 import translations from "@shopify/polaris/locales/en.json";
 import ClientRouter from "../components/ClientRouter";
+import "@shopify/polaris/dist/styles.css";
 
 function MyProvider(props) {
   const app = useAppBridge();
 
+  const fetch = authenticatedFetch(app);
+
   const client = new ApolloClient({
-    fetch: authenticatedFetch(app),
+    fetch,
     fetchOptions: {
       credentials: "include",
     },
@@ -34,7 +36,7 @@ function MyProvider(props) {
 
   return (
     <ApolloProvider client={client}>
-      <Component {...props} />
+      <Component {...props} authFetch={fetch} />
     </ApolloProvider>
   );
 }

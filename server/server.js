@@ -66,6 +66,14 @@ app.prepare().then(async () => {
     ctx.res.statusCode = 200;
   };
 
+  router.post(
+    "/graphql",
+    verifyRequest({ returnHeader: true }),
+    async (ctx, next) => {
+      await Shopify.Utils.graphqlProxy(ctx.req, ctx.res);
+    }
+  );
+
   router.get("/", async (ctx) => {
     const shop = ctx.query.shop;
 
@@ -86,13 +94,18 @@ app.prepare().then(async () => {
     }
   });
 
+  router.get("/api", verifyRequest(), async (ctx) => {
+    console.log("API testing...", ctx.originalUrl);
+    ctx.body = { data: "API call data from our BE" };
+    ctx.status = 200;
+  });
+
   router.get("(/_next/static/.*)", handleRequest); // Static content is clear
   router.get("/_next/webpack-hmr", handleRequest); // Webpack content is clear
   router.get("(.*)", verifyRequest(), handleRequest); // Everything else must have sessions
 
   server.use(router.allowedMethods());
   server.use(router.routes());
-  server.listen(port, () => {
-    console.log(`> Ready on http://localhost:${port}`);
-  });
+
+  server.listen(port, () => console.log(`> Ready on http://localhost:${port}`));
 });
