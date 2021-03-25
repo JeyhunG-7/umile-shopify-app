@@ -41,6 +41,13 @@ const Index = ({ authFetch }) => {
       .catch((e) => console.error("Fetch call error", e.message));
   };
 
+  const reqresFetchTest = () => {
+    authFetch("https://reqres.in/api/users?page=2")
+      .then((resp) => resp.json())
+      .then((data) => setDisplayData(data))
+      .catch((e) => console.error("Fetch call error", e.message));
+  };
+
   return (
     <>
       <Page>
@@ -66,6 +73,9 @@ const Index = ({ authFetch }) => {
           </Button>
           <Button onClick={() => sampleFetchTest()} primary>
             Fetch from BE
+          </Button>
+          <Button onClick={() => reqresFetchTest()} primary>
+            REST-API (reqres.io)
           </Button>
         </ButtonGroup>
         <br />
